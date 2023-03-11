@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use App\Http\Resources\ProductResource;
+
 
 class ProductController extends Controller
 {
@@ -15,8 +17,9 @@ class ProductController extends Controller
      */
     public function index()
     {
-        $products = Product::all();
-        return response()->json(['products' => $products, 'message' => 'Get Product Successfully...']);
+        $products = Product::latest()->paginate(10);
+        return new ProductResource(true, 'List Data Posts', $products);
+
     }
 
     /**
@@ -36,13 +39,24 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
+
+        $validate = $request->validate([
+            'name' =>'required',
+            'description' =>'required',
+            'price' =>'required',
+        ]);
+
+        if($validate->fail()){
+            return response()->json(['message' => 'Create Product Successfully...']);
+        }
+
         $product = Product::create([
             'name' => $request->name,
             'description' => $request->description,
             'price' => $request->price,
         ]);
 
-        return response()->json(['product' => $product, 'message' => 'Create Product Successfully...']);
+        return new ProductResource(true, 'Create Product Successfully...', $product);
     }
 
     /**
